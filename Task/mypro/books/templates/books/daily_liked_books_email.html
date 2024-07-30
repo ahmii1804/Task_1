@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Liked Books</title>
+</head>
+<body>
+    <p>Hi {{ user.username }},</p>
+    <p>Here is the list of books you liked today:</p>
+    <ul>
+        {% for book in liked_books %}
+            <li>{{ book.title }} by {{ book.author }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

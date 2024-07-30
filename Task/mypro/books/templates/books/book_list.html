@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .logout-link {
+            display: block;
+            text-align: right;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        .logout-link:hover {
+            color: #007BFF;
+        }
+        .filter-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .filter-form label {
+            margin-right: 10px;
+            align-self: center;
+            color: #555;
+        }
+        .filter-form input, .filter-form button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .filter-form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .filter-form button:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        li h2 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        li p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .like-btn, .unlike-btn {
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .like-btn:hover, .unlike-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var csrftoken = $('[name=csrf-token]').attr('content');
+            
+            $('button.like-btn, button.unlike-btn').click(function() {
+                var button = $(this);
+                var bookId = button.data('book-id');
+                
+                $.ajax({
+                    url: `/like_book/${bookId}/`,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    success: function(response) {
+                        if (response.liked) {
+                            button.removeClass('like-btn').addClass('unlike-btn').text('Unlike');
+                        } else {
+                            button.removeClass('unlike-btn').addClass('like-btn').text('Like');
+                        }
+                    },
+                    error: function(response) {
+                        if (response.status === 403) {
+                            alert('Please login to like a book.');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Books</h1>
+    <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+
+    <!-- Filter Form -->
+    <form method="get" action="{% url 'book_list' %}" class="filter-form">
+        <label for="author">Filter by author:</label>
+        <input type="text" id="author" name="author" value="{{ author_name }}">
+        <button type="submit">Filter</button>
+    </form>
+
+    <ul>
+        {% for book in books %}
+            <li>
+                <h2>{{ book.title }}</h2>
+                <p><strong>Author:</strong> {{ book.author }}</p>
+                <p>{{ book.description }}</p>
+                <button class="like-btn" data-book-id="{{ book.id }}">
+                    {% if request.user in book.likes.all %}
+                        Unlike
+                    {% else %}
+                        Like
+                    {% endif %}
+                </button>
+            </li>
+        {% empty %}
+            <li>No books available.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'signup' %}">Sign Up</a> | <a href="{% url 'signin' %}">Sign In</a>
+</body>
+</html>
